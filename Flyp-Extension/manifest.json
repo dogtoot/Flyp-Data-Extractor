@@ -1,0 +1,26 @@
+{
+  "name": "Flyp-Validation",
+  "description": "Base Level Extension",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "main.html",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "/scripts/background.js"
+  },
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "js": ["/scripts/content.js"],
+      "matches": [
+        "https://tools.joinflyp.com/my-items",
+        "https://tools.joinflyp.com/item/*"
+      ]
+    }
+  ]
+}
