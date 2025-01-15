@@ -1,3 +1,12 @@
+/* ******************************************
+ *
+ * Start of injected functions.
+ *
+ * ******************************************/
+
+/**
+ * Returns an array of html elements, as well as a boolean indicating the status of the next page.
+ * */
 async function getHtml() {
     while (document.getElementsByClassName("ant-list ant-list-split").length === 0) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -16,6 +25,9 @@ async function getHtml() {
     return [Array.from(elements).map((element) => element.innerHTML), hasNextPage];
 }
 
+/**
+ * Returns a Flyp item url.
+ * */
 function getFlypItem(element) {
     const start_index = element.indexOf("/item/") + 6; // Adjust index for start of item ID
     const end_index = element.indexOf("\"", start_index);
@@ -26,9 +38,24 @@ function getFlypItem(element) {
     };
 }
 
+/**
+ * Returns the ebay listing url.
+ * */
 function getEbayLink() {
     return document.getElementById("listingUrl").value;
 }
+
+async function disableBeforeUnload() {
+    window.history.go(-1);
+}
+
+/* ******************************************
+ *
+ * End of injected functions.
+ * ------------------------------------------
+ * Start of extension functions.
+ *
+ * *******************************************/
 
 document.addEventListener("DOMContentLoaded", async function () {
     let link = document.getElementById("btn");
@@ -53,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                             const [elements, hasNextPage] = result[0].result;
 
                             for (const element of elements) {
-                                let ebay_id = await runEbayId(element);
+                                let ebay_id = await getEbayURL(element);
                                 html_body += ` next ${element}|${ebay_id}`;
                             }
 
@@ -72,14 +99,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 });
 
-function send(data) {
-    fetch("http://localhost:60024/", {
-        method: "POST",
-        body: data
-    });
-}
+async function getEbayURL(data) {
+    let status_span = document.createElement("span");
+    status_span.id = "status_span";
 
-async function runEbayId(data) {
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.scripting.executeScript(
@@ -97,41 +120,49 @@ async function runEbayId(data) {
                     const { toolsUrl } = results[0].result;
                     console.log(`Navigating to: ${toolsUrl}`);
                     let ebayId;
-                    chrome.tabs.update(tabs[0].id, { url: toolsUrl }, async () => {
-                        await new Promise((resolve) => setTimeout(resolve, 4000)); // Wait for navigation to complete
-                        ebayId = await getEbayId();
-                        console.log(`Processed Ebay ID: ${ebayId}`);
-                        resolve(ebayId);
-                    });
+                    chrome.tabs.update(tabs[0].id, {  }, async () => {
+                        // Disable `beforeunload` handlers before navigation
+                        await chrome.scripting.executeScript({
+                            target: { tabId: tabs[0].id },
+                            function: disableBeforeUnload,
+                        });
+                        chrome.tabs.update(tabs[0].id, { url: toolsUrl }, async () => {
+                            await new Promise((resolve) => setTimeout(resolve, 4000)); // Wait for navigation to complete
+                            ebayId = await new Promise((resolve, reject) => {
+                                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                                    chrome.scripting.executeScript(
+                                        {
+                                            target: { tabId: tabs[0].id },
+                                            function: getEbayLink
+                                        },
+                                        (results) => {
+                                            if (chrome.runtime.lastError) {
+                                                console.error(chrome.runtime.lastError);
+                                                return reject(chrome.runtime.lastError);
+                                            }
+
+                                            if (results && results[0] && results[0].result) {
+                                                resolve(results[0].result);
+                                            } else {
+                                                resolve("N/A");
+                                            }
+                                        }
+                                    );
+                                });
+                            });
+                            status_span.textContent = `Processed Ebay ID: ${ebayId}`;
+                            resolve(ebayId);
+                        });
+                    })
                 }
             );
         });
     });
 }
 
-async function getEbayId() {
-    return new Promise((resolve, reject) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome.scripting.executeScript(
-                {
-                    target: { tabId: tabs[0].id },
-                    function: getEbayLink, // This function runs in the tab context
-                },
-                (results) => {
-                    if (chrome.runtime.lastError) {
-                        console.error(chrome.runtime.lastError);
-                        return reject(chrome.runtime.lastError);
-                    }
-
-                    if (results && results[0] && results[0].result) {
-                        resolve(results[0].result);
-                    } else {
-                        reject(new Error("No result returned from getEbayLink."));
-                    }
-                }
-            );
-        });
+function send(data) {
+    fetch("http://localhost:60024/", {
+        method: "POST",
+        body: data
     });
 }
-
-
