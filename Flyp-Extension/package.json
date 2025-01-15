@@ -2,7 +2,7 @@
   "name": "FlypExtension",
   "version": "1.0.0",
   "description": "",
-  "main": "scripts/background.js",
+  "main": "content_scripts/content.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

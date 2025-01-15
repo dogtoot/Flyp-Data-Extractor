@@ -45,10 +45,6 @@ function getEbayLink() {
     return document.getElementById("listingUrl").value;
 }
 
-async function disableBeforeUnload() {
-    window.history.go(-1);
-}
-
 /* ******************************************
  *
  * End of injected functions.
@@ -121,11 +117,6 @@ async function getEbayURL(data) {
                     console.log(`Navigating to: ${toolsUrl}`);
                     let ebayId;
                     chrome.tabs.update(tabs[0].id, {  }, async () => {
-                        // Disable `beforeunload` handlers before navigation
-                        await chrome.scripting.executeScript({
-                            target: { tabId: tabs[0].id },
-                            function: disableBeforeUnload,
-                        });
                         chrome.tabs.update(tabs[0].id, { url: toolsUrl }, async () => {
                             await new Promise((resolve) => setTimeout(resolve, 4000)); // Wait for navigation to complete
                             ebayId = await new Promise((resolve, reject) => {

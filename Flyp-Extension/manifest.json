@@ -3,24 +3,48 @@
   "description": "Base Level Extension",
   "version": "1.0",
   "manifest_version": 3,
-  "action": {
-    "default_popup": "main.html",
-    "default_icon": "icon.png"
-  },
-  "background": {
-    "service_worker": "/scripts/background.js"
-  },
+  "web_accessible_resources":[{
+    "resources": [
+      "injected_scripts/before.inject.js",
+      "injected_scripts/after.inject.js"
+    ],
+    "matches": [
+      "https://tools.joinflyp.com/*"
+    ]
+  }],
   "permissions": [
     "scripting",
     "activeTab"
   ],
+  "action": {
+    "default_popup": "main.html",
+    "default_icon": "icon.png"
+  },
   "content_scripts": [
     {
-      "js": ["/scripts/content.js"],
+      "js": ["/content_scripts/content.js"],
       "matches": [
         "https://tools.joinflyp.com/my-items",
         "https://tools.joinflyp.com/item/*"
       ]
+    },
+    {
+      "matches": [
+        "https://tools.joinflyp.com/my-items",
+        "https://tools.joinflyp.com/item/*"
+      ],
+      "js": ["background_scripts/before.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://tools.joinflyp.com/my-items",
+        "https://tools.joinflyp.com/item/*"
+      ],
+      "js": ["background_scripts/after.js"],
+      "run_at": "document_end",
+      "all_frames": true
     }
   ]
 }
