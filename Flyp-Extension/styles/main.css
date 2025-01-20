@@ -1,5 +1,6 @@
 #status_span{
-    color: #00ff00;
+    display: block;
+    color: #007e00;
 }
 
 body{

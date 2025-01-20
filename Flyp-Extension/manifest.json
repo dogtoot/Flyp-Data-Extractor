@@ -22,7 +22,7 @@
   },
   "content_scripts": [
     {
-      "js": ["/content_scripts/content.js"],
+      "js": ["/content_scripts/flyp.js"],
       "matches": [
         "https://tools.joinflyp.com/my-items",
         "https://tools.joinflyp.com/item/*"

@@ -22,7 +22,7 @@ async function getHtml() {
     //     next_btn.click();
     // }
 
-    return [Array.from(elements).map((element) => element.innerHTML), hasNextPage];
+    return [Array.from(elements).map((element) => element.innerHTML), false];
 }
 
 /**
@@ -42,7 +42,21 @@ function getFlypItem(element) {
  * Returns the ebay listing url.
  * */
 function getEbayLink() {
-    return document.getElementById("listingUrl").value;
+    let brand = "";
+    let container_list = document.getElementsByClassName("item-info-input-container")
+    for (const container of container_list) {
+        try{
+            if(container.getElementsByClassName("item-info-label")[0].innerText.includes("Brand")) {
+                brand = container.getElementsByClassName("ant-select-selection-item")[0].innerText;
+            }
+        }
+        catch(e) {}
+    }
+
+    return {
+        url: document.getElementById("listingUrl").value,
+        brand: brand
+    };
 }
 
 /* ******************************************
@@ -55,7 +69,7 @@ function getEbayLink() {
 
 document.addEventListener("DOMContentLoaded", async function () {
     let link = document.getElementById("btn");
-    let html_body = "";
+    let html_body = "flyp ";
     let next_page = true;
 
     link.addEventListener("click", async function () {
@@ -74,10 +88,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                             }
 
                             const [elements, hasNextPage] = result[0].result;
+                            next_page = hasNextPage;
 
                             for (const element of elements) {
-                                let ebay_id = await getEbayURL(element);
-                                html_body += ` next ${element}|${ebay_id}`;
+                                let [ebay_id, brand] = await getEbayURL(element);
+                                html_body += ` next ${element}|${ebay_id}|${brand}`;
+                                console.log(ebay_id + " | " + brand);
                             }
 
                             next_page = hasNextPage;
@@ -96,9 +112,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 async function getEbayURL(data) {
-    let status_span = document.createElement("span");
-    status_span.id = "status_span";
-
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.scripting.executeScript(
@@ -115,36 +128,40 @@ async function getEbayURL(data) {
 
                     const { toolsUrl } = results[0].result;
                     console.log(`Navigating to: ${toolsUrl}`);
-                    let ebayId;
-                    chrome.tabs.update(tabs[0].id, {  }, async () => {
-                        chrome.tabs.update(tabs[0].id, { url: toolsUrl }, async () => {
-                            await new Promise((resolve) => setTimeout(resolve, 4000)); // Wait for navigation to complete
-                            ebayId = await new Promise((resolve, reject) => {
-                                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                                    chrome.scripting.executeScript(
-                                        {
-                                            target: { tabId: tabs[0].id },
-                                            function: getEbayLink
-                                        },
-                                        (results) => {
-                                            if (chrome.runtime.lastError) {
-                                                console.error(chrome.runtime.lastError);
-                                                return reject(chrome.runtime.lastError);
-                                            }
-
-                                            if (results && results[0] && results[0].result) {
-                                                resolve(results[0].result);
-                                            } else {
-                                                resolve("N/A");
-                                            }
+                    chrome.tabs.update(tabs[0].id, { url: toolsUrl }, async () => {
+                        await new Promise((resolve) => setTimeout(resolve, 4000)); // Wait for navigation to complete
+                        let [ebayId, brand] = await new Promise((resolve, reject) => {
+                            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                                chrome.scripting.executeScript(
+                                    {
+                                        target: { tabId: tabs[0].id },
+                                        function: getEbayLink
+                                    },
+                                    (results) => {
+                                        if (chrome.runtime.lastError) {
+                                            console.error(chrome.runtime.lastError);
+                                            return reject(chrome.runtime.lastError);
                                         }
-                                    );
-                                });
+
+                                        let {url, brand} = results[0].result;
+
+                                        if(brand === "Michael"){
+                                            brand = "Michael Kors"
+                                        }
+
+                                        if (results && results[0] && results[0].result) {
+                                            resolve([url || "N/A", brand || "N/A"]);
+                                        } else {
+                                            resolve(["N/A", "N/A"]);
+                                        }
+                                    }
+                                );
                             });
-                            status_span.textContent = `Processed Ebay ID: ${ebayId}`;
-                            resolve(ebayId);
                         });
-                    })
+                        // Display a success message to the extension window.
+                        document.getElementById("status_span").textContent = `Retrieved Ebay Listing ID: ${ebayId.toString().replace("https://www.ebay.com/itm/", "")}`;
+                        resolve([ebayId || "N/A", brand || "N/A"]);
+                    });
                 }
             );
         });
@@ -152,8 +169,8 @@ async function getEbayURL(data) {
 }
 
 function send(data) {
-    fetch("http://localhost:60024/", {
+    fetch("http://localhost:60024/ProcessRequest", { // Replace with server URL.
         method: "POST",
         body: data
-    });
+    }).then(() => console.log("Successfully sent data."));
 }
