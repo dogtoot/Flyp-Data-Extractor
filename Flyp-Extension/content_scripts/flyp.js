@@ -92,7 +92,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                             for (const element of elements) {
                                 let [ebay_id, brand] = await getEbayURL(element);
-                                html_body += ` next ${element}|${ebay_id}|${brand}`;
+                                html_body = ` flyp ${element}|${ebay_id}|${brand}`;
+                                send(html_body);
                                 console.log(ebay_id + " | " + brand);
                             }
 
@@ -106,8 +107,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             // Add a delay between pages to avoid overwhelming the site
             await new Promise((resolve) => setTimeout(resolve, 750));
         }
-
-        send(html_body);
     });
 });
 

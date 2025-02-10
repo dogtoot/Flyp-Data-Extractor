@@ -364,3 +364,9 @@ FodyWeavers.xsd
 
 #idea folders
 .idea
+
+#database
+*.sqlite
+*.db
+*.sqlite3
+*.db3

@@ -61,7 +61,11 @@ namespace Flyp_Extension_Backend
                     {
                         case string a when a.Contains("flyp"):
                             (flypListings, brands) = BuildFlypList(postData);
-                            CreateCSV(flypListings, brands);
+                            //CreateCSV(flypListings, brands);
+                            foreach(FlypListing s in flypListings)
+                            {
+                                SQLHandler.Insert(s);
+                            }
                             jsonResponse = new
                             {
                                 success = true,
@@ -103,7 +107,16 @@ namespace Flyp_Extension_Backend
                 finally
                 {
                     // Close the response stream
-                    response.OutputStream.Close();
+                    try
+                    {
+                        response.OutputStream.Close();
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+
+
                 }
             }
         }
@@ -192,7 +205,7 @@ namespace Flyp_Extension_Backend
             return (listings, brands.ToArray());
         }
 
-        private void CreateCSV(List<FlypListing> listings, string[] brands)
+        /*private void CreateCSV(List<FlypListing> listings, string[] brands)
         {
             // Write all data to a CSV file.
             foreach (string brand in brands)
@@ -224,6 +237,6 @@ namespace Flyp_Extension_Backend
                     Debug.WriteLine("Unable to write CSV.");
                 }
             }
-        }
+        }*/
     }
 }
