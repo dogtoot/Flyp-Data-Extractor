@@ -68,7 +68,7 @@ function getEbayLink() {
  * *******************************************/
 
 document.addEventListener("DOMContentLoaded", async function () {
-    let link = document.getElementById("btn");
+    let link = document.getElementById("Flybtn");
     let html_body = "flyp ";
     let next_page = true;
 

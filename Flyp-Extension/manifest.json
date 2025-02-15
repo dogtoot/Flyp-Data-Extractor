@@ -1,6 +1,6 @@
 {
   "name": "Flyp-Validation",
-  "description": "Base Level Extension",
+  "description": "Archiver for Flyp, Ebay, Poshmark, and Mercari listings.",
   "version": "1.0",
   "manifest_version": 3,
   "web_accessible_resources":[{
@@ -26,6 +26,12 @@
       "matches": [
         "https://tools.joinflyp.com/my-items",
         "https://tools.joinflyp.com/item/*"
+      ]
+    },
+    {
+      "js": ["/content_scripts/poshmark.js"],
+      "matches": [
+        "https://poshmark.com/closet/johniemaes"
       ]
     },
     {

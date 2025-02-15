@@ -363,10 +363,19 @@ MigrationBackup/
 FodyWeavers.xsd
 
 #idea folders
-.idea
+#.idea
 
 #database
 *.sqlite
 *.db
 *.sqlite3
 *.db3
+
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
