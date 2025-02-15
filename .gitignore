@@ -363,7 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 #idea folders
-#.idea
+.idea
 
 #database
 *.sqlite
